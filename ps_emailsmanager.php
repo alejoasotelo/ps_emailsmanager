@@ -215,8 +215,9 @@ class Ps_EmailsManager extends Module
     public function getEmailsTranslations($iso_lang)
     {
         $translations = Tools::file_get_contents(
-            'http://api.addons.prestashop.com/index.php?version=1&method=translations&type=emails&iso_lang='.$iso_lang
+            'https://raw.githubusercontent.com/alejoasotelo/email-templates-sdk/master/langs/es/lang.json'
         );
+
         $translations = Tools::jsonDecode($translations, true);
 
         if (is_null($translations) || !$translations) {
