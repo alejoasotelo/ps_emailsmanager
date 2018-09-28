@@ -214,9 +214,13 @@ class Ps_EmailsManager extends Module
 
     public function getEmailsTranslations($iso_lang)
     {
-        $translations = Tools::file_get_contents(
-            'https://raw.githubusercontent.com/alejoasotelo/email-templates-sdk/master/langs/es/lang.json'
-        );
+       // $translations = Tools::file_get_contents(
+       //     'http://api.addons.prestashop.com/index.php?version=1&method=translations&type=emails&iso_lang='.$iso_lang
+       // );
+
+	$translations = Tools::file_get_contents(
+		'https://raw.githubusercontent.com/alejoasotelo/email-templates-sdk/master/langs/es/lang.json'
+	);
 
         $translations = Tools::jsonDecode($translations, true);
 
@@ -348,6 +352,11 @@ class Ps_EmailsManager extends Module
                 return false;
             }
 
+            if (!mkdir($compilePath.'/modules', 0777, true)) {
+                $this->_errors[] = $this->l('Can\'t create folder: '.$compilePath.DIRECTORY_SEPARATOR.'modules');
+                return false;
+            }
+
             // Loop through each .tpl files from the template pack, replace
             // ${{ lang.key }}$ with the right translation, and write the
             // files in PS_THEME_DIR/mails/iso_code/*.tpl
@@ -364,11 +373,29 @@ class Ps_EmailsManager extends Module
                     if (file_put_contents($dest, $templateContent) === false) {
                         $this->_errors[] = $this->l('Can\'t write file:').' '.$dest;
                     }
-                } else {
-                    continue;
+		} elseif ($f->isDir() && $f->getFilename() == 'modules') {
+                    $modules = new RecursiveDirectoryIterator($tplPath.'/modules/');
+                    $modules = new RecursiveIteratorIterator($modules);
+                    foreach ($modules as $m) {
+                        if ($m->isFile() && $m->getExtension() === 'tpl') {
+                            $templateContent = $this->context->smarty->fetch($m->getRealPath());
+                            $templateContent = $this->translateTemplate($templateContent, $translations);
+                            $dest = $compilePath.'modules/'.basename($m->getPath()).'/mails/es/';
+
+                            if (!file_exists($dest) && !mkdir($dest, 0777, true)) {
+                                $this->_errors[] = $this->l('Can\'t create folder:').''.$dest;
+                                return false;
+                            }
+                            if (file_put_contents($dest.$m->getBasename('.tpl').'.html', $templateContent) === false) {
+                                $err = $this->l('Can\'t write file:').' '.$dest.$m->getBasename('.tpl').'.html';
+                                $this->_errors[] = $err;
+                            }
+                        }
+                    }
                 }
             }
 
+	    // Copy native templates files
             $i = new DirectoryIterator($tplPath.'/tpl/');
             foreach ($i as $f) {
                 if ($f->isFile() && $f->getExtension() === 'tpl') {
@@ -385,11 +412,10 @@ class Ps_EmailsManager extends Module
 
         // Copy compiled files into mails' dir if every
         foreach (Language::getLanguages() as $language) {
-            $compilePath = dirname(__FILE__).DIRECTORY_SEPARATOR.'compile'.DIRECTORY_SEPARATOR.$tplName;
-            $compilePath .= DIRECTORY_SEPARATOR.$language['iso_code'].DIRECTORY_SEPARATOR;
+            $compilePath = dirname(__FILE__).'/compile/'.$tplName.'/'.$language['iso_code'].'/';
 
-            $themeMailsPath = _PS_ALL_THEMES_DIR_.$this->getCurrentThemeDirectory().DIRECTORY_SEPARATOR;
-            $themeMailsPath .= 'mails'.DIRECTORY_SEPARATOR.$language['iso_code'].DIRECTORY_SEPARATOR;
+            $themeMailsPath = _PS_ALL_THEMES_DIR_.$this->getCurrentThemeDirectory().'/mails/'.$language['iso_code'].'/';
+
             if (!file_exists($themeMailsPath) && !mkdir($themeMailsPath)) {
                 $this->_errors[] = $this->l('Can\'t create directory:').' '.$themeMailsPath;
                 return false;
