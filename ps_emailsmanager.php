@@ -1,6 +1,6 @@
 <?php
 /**
-* 2007-2017 PrestaShop
+* 2007-2017 PrestaShop.
 *
 * DISCLAIMER
 *
@@ -13,21 +13,20 @@
 * @license   http://addons.prestashop.com/en/content/12-terms-and-conditions-of-use
 * International Registered Trademark & Property of PrestaShop SA
 */
-
 require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'classes'.DIRECTORY_SEPARATOR.'EmailTemplateFilterIterator.php';
 require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'classes'.DIRECTORY_SEPARATOR.'ImageFilterIterator.php';
 
 class Ps_EmailsManager extends Module
 {
     const DEFAULT_THEME_NAME = 'classic';
-    const ADMIN_CTRL_NAME    = 'AdminEmailsManager';
+    const ADMIN_CTRL_NAME = 'AdminEmailsManager';
 
     public function __construct()
     {
-        $this->name      = 'ps_emailsmanager';
-        $this->version   = '1.2.1';
-        $this->tab       = 'emailing';
-        $this->author    = 'PrestaShop';
+        $this->name = 'ps_emailsmanager';
+        $this->version = '1.2.1';
+        $this->tab = 'emailing';
+        $this->author = 'PrestaShop';
         $this->bootstrap = true;
 
         parent::__construct();
@@ -43,7 +42,7 @@ class Ps_EmailsManager extends Module
     }
 
     /**
-     * Install the module on the store
+     * Install the module on the store.
      */
     public function install()
     {
@@ -69,21 +68,22 @@ class Ps_EmailsManager extends Module
         }
         $tab->id_parent = -1;
         $tab->module = $this->name;
+
         return $tab->add();
     }
 
     public function uninstallTab()
     {
-        $id_tab = (int)Tab::getIdFromClassName('AdminExpeditor');
+        $id_tab = (int) Tab::getIdFromClassName('AdminExpeditor');
         if ($id_tab) {
             $tab = new Tab($id_tab);
             if (Validate::isLoadedObject($tab)) {
-                return ($tab->delete());
+                return $tab->delete();
             } else {
-                return (false);
+                return false;
             }
         } else {
-            return (true);
+            return true;
         }
     }
 
@@ -94,12 +94,12 @@ class Ps_EmailsManager extends Module
 
     /**
      * Fetches the content of /theme/my-theme/mails and save it
-     * as the classic template pack
+     * as the classic template pack.
      */
     public function backupDefaultPack()
     {
         /** /var/www/prestashop/mails **/
-        $coreMailsPath  = _PS_ROOT_DIR_.DIRECTORY_SEPARATOR.'mails';
+        $coreMailsPath = _PS_ROOT_DIR_.DIRECTORY_SEPARATOR.'mails';
 
         // Get all installed themes
         $themes = $this->getAllThemes();
@@ -107,22 +107,22 @@ class Ps_EmailsManager extends Module
         // Checks that every core templates are overriden in the current theme.
         // If not, copy the missing ones inside it.
         try {
-            $coreItr   = new RecursiveDirectoryIterator($coreMailsPath);
+            $coreItr = new RecursiveDirectoryIterator($coreMailsPath);
             $filterItr = new EmailTemplateFilterIterator($coreItr);
-            $iterator  = new RecursiveIteratorIterator($filterItr);
+            $iterator = new RecursiveIteratorIterator($filterItr);
             foreach ($iterator as $file) {
                 // '/isocode/file'
                 $toCheck = str_replace($coreMailsPath, '', $file->getPathname());
                 $isoCode = $this->getIsoCodeFromTplPath($file->getPathname());
 
                 foreach ($themes as $theme) {
-
                     /** /var/www/prestashop/themes/theme_name/mails **/
                     $themeMailsPath = _PS_ALL_THEMES_DIR_.$theme->directory.DIRECTORY_SEPARATOR.'mails';
 
                     // Create "mails" directory inside the theme if it doesn't exist
                     if (!file_exists($themeMailsPath) && !mkdir($themeMailsPath)) {
                         $this->_errors[] = $this->l('Can\'t create folder: ').$themeMailsPath;
+
                         return false;
                     }
 
@@ -130,6 +130,7 @@ class Ps_EmailsManager extends Module
                     if (!file_exists($themeMailsPath.DIRECTORY_SEPARATOR.$isoCode) &&
                         !mkdir($themeMailsPath.DIRECTORY_SEPARATOR.$isoCode)) {
                         $this->_errors[] = $this->l('Can\'t create folder: ').$themeMailsPath.DIRECTORY_SEPARATOR.$isoCode;
+
                         return false;
                     }
 
@@ -137,21 +138,24 @@ class Ps_EmailsManager extends Module
                     if (!file_exists($themeMailsPath.$toCheck) &&
                         !copy($file->getPathname(), $themeMailsPath.$toCheck)) {
                         $this->_errors[] = $this->l('Can\'t copy file: ').$themeMailsPath.$toCheck;
+
                         return false;
                     }
                 }
             }
         } catch (Exception $e) {
             $this->_errors[] = $e->getMessage();
+
             return false;
         }
 
         /** /var/www/prestashop/modules/emailsmanager/imports/classic **/
-        $backupPath  = $this->importsPath.self::DEFAULT_THEME_NAME;
+        $backupPath = $this->importsPath.self::DEFAULT_THEME_NAME;
 
         // Creates the "classic" template directory if not exists
         if (!file_exists($backupPath) && !mkdir($backupPath)) {
             $this->_errors[] = $this->l('Can\'t create folder: ').$backupPath;
+
             return false;
         }
 
@@ -175,52 +179,56 @@ class Ps_EmailsManager extends Module
     private function recursiveCopy($src, $dest)
     {
         $srcIterator = new RecursiveDirectoryIterator($src);
-        $srcFilter   = new EmailTemplateFilterIterator($srcIterator);
-        $iterator    = new RecursiveIteratorIterator($srcFilter);
+        $srcFilter = new EmailTemplateFilterIterator($srcIterator);
+        $iterator = new RecursiveIteratorIterator($srcFilter);
 
         foreach ($iterator as $file) {
             // Full path to the current template
-            $copySrc   = $file->getPathname();
+            $copySrc = $file->getPathname();
             // Iso code of the current template
-            $isoCode   = $this->getIsoCodeFromTplPath($copySrc);
+            $isoCode = $this->getIsoCodeFromTplPath($copySrc);
             // Full path for the backup
-            $copyDest  = $dest.DIRECTORY_SEPARATOR.$isoCode.DIRECTORY_SEPARATOR;
+            $copyDest = $dest.DIRECTORY_SEPARATOR.$isoCode.DIRECTORY_SEPARATOR;
             $copyDest .= $file->getBasename();
 
             if (!file_exists($dest.DIRECTORY_SEPARATOR.$isoCode) &&
                 !mkdir($dest.DIRECTORY_SEPARATOR.$isoCode)) {
                 $this->_errors[] = $this->l('Can\'t create folder: ').$dest.DIRECTORY_SEPARATOR.$isoCode;
+
                 return false;
             }
 
             if (!copy($copySrc, $copyDest)) {
                 $this->_errors[] = $this->l('Can\'t copy file: ').$copyDest;
+
                 return false;
             }
         }
+
         return true;
     }
 
     /**
-     * Remove the module from the store
+     * Remove the module from the store.
      */
     public function uninstall()
     {
         if ($this->restoreClassicTemplate(true)) {
             return parent::uninstall();
         }
+
         return false;
     }
 
     public function getEmailsTranslations($iso_lang)
     {
-       // $translations = Tools::file_get_contents(
-       //     'http://api.addons.prestashop.com/index.php?version=1&method=translations&type=emails&iso_lang='.$iso_lang
-       // );
+        // $translations = Tools::file_get_contents(
+        //     'http://api.addons.prestashop.com/index.php?version=1&method=translations&type=emails&iso_lang='.$iso_lang
+        // );
 
-	$translations = Tools::file_get_contents(
-		'https://raw.githubusercontent.com/alejoasotelo/email-templates-sdk/master/langs/es/lang.json'
-	);
+        $translations = Tools::file_get_contents(
+            'https://raw.githubusercontent.com/alejoasotelo/email-templates-sdk/master/langs/es/lang.json'
+        );
 
         $translations = Tools::jsonDecode($translations, true);
 
@@ -237,6 +245,7 @@ class Ps_EmailsManager extends Module
             $pattern = '${{ lang.'.$key.' }}$';
             $tpl = str_replace($pattern, $value, $tpl);
         }
+
         return $tpl;
     }
 
@@ -249,7 +258,7 @@ class Ps_EmailsManager extends Module
             'PS_SHOP_CITY',
             'PS_SHOP_COUNTRY_ID',
             'PS_SHOP_PHONE',
-            'PS_SHOP_FAX'
+            'PS_SHOP_FAX',
         ));
 
         $country = Country::getNameById(Context::getContext()->language->id, $variables['PS_SHOP_COUNTRY_ID']);
@@ -272,18 +281,20 @@ class Ps_EmailsManager extends Module
         $tplName = basename(Tools::getValue('select_template'));
         if (!$tplName || $tplName == '') {
             $this->_errors[] = $this->l('Invalid template\'s name');
+
             return false;
         }
 
-        $tplPath       = $this->importsPath.$tplName;
-        $userSettings  = array(
-            'name'   => $tplName,
+        $tplPath = $this->importsPath.$tplName;
+        $userSettings = array(
+            'name' => $tplName,
             'inputs' => array(),
         );
 
         $settings = $this->getTemplateSettings($tplName);
         if (!isset($settings['inputs']) || !is_array($settings['inputs'])) {
             $this->_errors[] = $this->l('Invalid template');
+
             return false;
         }
 
@@ -311,7 +322,6 @@ class Ps_EmailsManager extends Module
             }
         }
 
-
         $this->context->smarty->assign($this->getTplVariables());
 
         // ... and add a record in the database
@@ -322,7 +332,6 @@ class Ps_EmailsManager extends Module
         $this->context->smarty->right_delimiter = '}}';
 
         foreach (Language::getLanguages() as $language) {
-
             // Make sure that we have enough time per language on slow shops
             set_time_limit(30);
 
@@ -335,6 +344,7 @@ class Ps_EmailsManager extends Module
 
             if (!$translations) {
                 $this->_errors[] = $this->l('Addons API error');
+
                 return false;
             }
 
@@ -349,11 +359,13 @@ class Ps_EmailsManager extends Module
             // Create folder for compiled files
             if (!mkdir($compilePath, 0777, true)) {
                 $this->_errors[] = $this->l('Can\'t create folder: '.$compilePath);
+
                 return false;
             }
 
             if (!mkdir($compilePath.'/modules', 0777, true)) {
                 $this->_errors[] = $this->l('Can\'t create folder: '.$compilePath.DIRECTORY_SEPARATOR.'modules');
+
                 return false;
             }
 
@@ -373,7 +385,7 @@ class Ps_EmailsManager extends Module
                     if (file_put_contents($dest, $templateContent) === false) {
                         $this->_errors[] = $this->l('Can\'t write file:').' '.$dest;
                     }
-		} elseif ($f->isDir() && $f->getFilename() == 'modules') {
+                } elseif ($f->isDir() && $f->getFilename() == 'modules') {
                     $modules = new RecursiveDirectoryIterator($tplPath.'/modules/');
                     $modules = new RecursiveIteratorIterator($modules);
                     foreach ($modules as $m) {
@@ -384,6 +396,7 @@ class Ps_EmailsManager extends Module
 
                             if (!file_exists($dest) && !mkdir($dest, 0777, true)) {
                                 $this->_errors[] = $this->l('Can\'t create folder:').''.$dest;
+
                                 return false;
                             }
                             if (file_put_contents($dest.$m->getBasename('.tpl').'.html', $templateContent) === false) {
@@ -395,7 +408,7 @@ class Ps_EmailsManager extends Module
                 }
             }
 
-	    // Copy native templates files
+            // Copy native templates files
             $i = new DirectoryIterator($tplPath.'/tpl/');
             foreach ($i as $f) {
                 if ($f->isFile() && $f->getExtension() === 'tpl') {
@@ -418,6 +431,7 @@ class Ps_EmailsManager extends Module
 
             if (!file_exists($themeMailsPath) && !mkdir($themeMailsPath)) {
                 $this->_errors[] = $this->l('Can\'t create directory:').' '.$themeMailsPath;
+
                 return false;
             }
 
@@ -438,17 +452,18 @@ class Ps_EmailsManager extends Module
             return false;
         }
 
-        $tplImgsPath  = $this->importsPath.$tplName.DIRECTORY_SEPARATOR.'img';
-        $dest         = _PS_IMG_DIR_.'emails';
+        $tplImgsPath = $this->importsPath.$tplName.DIRECTORY_SEPARATOR.'img';
+        $dest = _PS_IMG_DIR_.'emails';
 
         if (!file_exists($dest) && !mkdir($dest)) {
             $this->_errors[] = $this->l('Can\'t create directory:').' '._PS_IMG_DIR_.'emails';
+
             return false;
         }
 
-        $srcItr    = new RecursiveDirectoryIterator($tplImgsPath);
+        $srcItr = new RecursiveDirectoryIterator($tplImgsPath);
         $srcFilter = new ImageFilterIterator($srcItr);
-        $iterator  = new RecursiveIteratorIterator($srcFilter);
+        $iterator = new RecursiveIteratorIterator($srcFilter);
         foreach ($iterator as $file) {
             $state = Tools::copy(
                 $file->getRealPath(),
@@ -457,6 +472,7 @@ class Ps_EmailsManager extends Module
 
             if ($state === false) {
                 $this->_errors[] = $this->l('Can\'t copy file:').' '.$file->getRealPath();
+
                 return false;
             }
         }
@@ -480,6 +496,7 @@ class Ps_EmailsManager extends Module
                 $stdTheme->id = Tools::strtoupper($theme->getName());
                 $themes[] = $stdTheme;
             }
+
             return $themes;
         }
     }
@@ -503,12 +520,12 @@ class Ps_EmailsManager extends Module
     }
 
     /**
-     * Backoffice content
+     * Backoffice content.
      */
     public function getContent()
     {
         $tplPath = $this->getAdminTemplatesPath();
-        $html    = '';
+        $html = '';
 
         $this->context->controller->addCSS($this->_path.'views/css/back.css');
         if (version_compare(_PS_VERSION_, '1.6', '>=')) {
@@ -561,15 +578,15 @@ class Ps_EmailsManager extends Module
         }
 
         $this->context->smarty->assign(array(
-            'module_dir'         => $this->_path,
-            'link'               => $this->context->link,
-            'module_local_dir'   => $this->local_path,
+            'module_dir' => $this->_path,
+            'link' => $this->context->link,
+            'module_local_dir' => $this->local_path,
             'availableTemplates' => $this->getAvailableTemplates(),
-            'currentTemplate'    => $this->getCurrentTemplate(),
-            'moduleLink'         => $this->context->link->getAdminLink('AdminModules').'&configure='.$this->name,
-            'previewLink'        => $this->context->link->getAdminLink('AdminEmailsManager').'&template=',
-            'addons_products'    => $addons_products,
-            'ps_version'         => (float)_PS_VERSION_ * 10
+            'currentTemplate' => $this->getCurrentTemplate(),
+            'moduleLink' => $this->context->link->getAdminLink('AdminModules').'&configure='.$this->name,
+            'previewLink' => $this->context->link->getAdminLink('AdminEmailsManager').'&template=',
+            'addons_products' => $addons_products,
+            'ps_version' => (float) _PS_VERSION_ * 10,
         ));
 
         // Display errors
@@ -618,7 +635,8 @@ class Ps_EmailsManager extends Module
     }
 
     /**
-     * Copy the folder $src into $dst, $dst is created if it do not exist
+     * Copy the folder $src into $dst, $dst is created if it do not exist.
+     *
      * @param      $src
      * @param      $dst
      * @param bool $del if true, delete the file after copy
@@ -652,7 +670,7 @@ class Ps_EmailsManager extends Module
 
     public function restoreClassicTemplate($all = false)
     {
-        $classicTplPath  = $this->importsPath.self::DEFAULT_THEME_NAME;
+        $classicTplPath = $this->importsPath.self::DEFAULT_THEME_NAME;
 
         if ($all) {
             $themes = $this->getAllThemes();
@@ -670,8 +688,8 @@ class Ps_EmailsManager extends Module
         }
 
         foreach ($themes as $theme) {
-            $mailsFolder     = _PS_ALL_THEMES_DIR_.$theme->directory.DIRECTORY_SEPARATOR.'mails';
-            $backupFolder    = _PS_ALL_THEMES_DIR_.$theme->directory.DIRECTORY_SEPARATOR.'mails_backup';
+            $mailsFolder = _PS_ALL_THEMES_DIR_.$theme->directory.DIRECTORY_SEPARATOR.'mails';
+            $backupFolder = _PS_ALL_THEMES_DIR_.$theme->directory.DIRECTORY_SEPARATOR.'mails_backup';
 
             if (file_exists($backupFolder)) {
                 Tools::deleteDirectory($backupFolder, true);
@@ -679,6 +697,7 @@ class Ps_EmailsManager extends Module
 
             if (!mkdir($backupFolder, 0777)) {
                 $this->_errors[] = $this->l('Cannot create backup\'s folder. Please check permissions.');
+
                 return false;
             }
 
@@ -700,23 +719,25 @@ class Ps_EmailsManager extends Module
             $currentTpl = Tools::jsonDecode($currentTpl, true);
             $path = $this->importsPath.$currentTpl['name'];
             $settings = Tools::jsonDecode(Tools::file_get_contents($path.DIRECTORY_SEPARATOR.'settings.json'), true);
+
             return is_null($settings) ? false : $settings;
         } else {
             return array(
                 'name' => 'classic',
                 'author' => 'PrestaShop',
-                'version' => '1.0'
+                'version' => '1.0',
             );
         }
     }
 
     public function getTemplateSettings($name)
     {
-        $path     = $this->importsPath.$name;
+        $path = $this->importsPath.$name;
         $settings = Tools::jsonDecode(Tools::file_get_contents($path.DIRECTORY_SEPARATOR.'settings.json'), true);
 
         if (is_null($settings)) {
             $this->_errors[] = $this->l('Invalid settings.json');
+
             return false;
         }
 
@@ -738,7 +759,7 @@ class Ps_EmailsManager extends Module
         $fieldsForm[0]['form'] = array(
             'legend' => array(
                 'title' => $this->l('Configure ').$settings['name'],
-                'name'  => $settings['name'],
+                'name' => $settings['name'],
             ),
             'input' => array(),
             'submit' => array(
@@ -751,14 +772,14 @@ class Ps_EmailsManager extends Module
                     'icon' => 'process-icon-preview',
                     'class' => 'pull-right',
                     'id' => 'preview-template',
-                    'href' => $this->context->link->getAdminLink('AdminEmailsManager').'&template='.$settings['name']
+                    'href' => $this->context->link->getAdminLink('AdminEmailsManager').'&template='.$settings['name'],
                 ),
                 'cancel' => array(
                     'href' => $this->context->link->getAdminLink('AdminModules').'&configure='.$this->name,
                     'title' => $this->l('Cancel'),
-                    'icon' => 'process-icon-cancel'
-                )
-            )
+                    'icon' => 'process-icon-cancel',
+                ),
+            ),
         );
 
         $iso = Context::getContext()->language->iso_code;
@@ -766,17 +787,17 @@ class Ps_EmailsManager extends Module
         foreach ($settings['inputs'] as $input) {
             $inputs[] = array(
                 'required' => isset($input['required']) ? $input['required'] : false,
-                'name'     => $input['name'],
-                'desc'     => isset($input['desc'][$iso]) ? $input['desc'][$iso] : $input['desc']['en'],
-                'type'     => $input['type'],
-                'label'    => isset($input['label'][$iso]) ? $input['label'][$iso] : $input['label']['en'],
-                'lang'     => isset($input['lang']) ? $input['lang'] : '',
+                'name' => $input['name'],
+                'desc' => isset($input['desc'][$iso]) ? $input['desc'][$iso] : $input['desc']['en'],
+                'type' => $input['type'],
+                'label' => isset($input['label'][$iso]) ? $input['label'][$iso] : $input['label']['en'],
+                'lang' => isset($input['lang']) ? $input['lang'] : '',
             );
         }
         $inputs[] = array(
             'required' => true,
-            'type'     => 'hidden',
-            'name'     => 'select_template',
+            'type' => 'hidden',
+            'name' => 'select_template',
         );
 
         $fieldsForm[0]['form']['input'] = $inputs;
@@ -785,7 +806,7 @@ class Ps_EmailsManager extends Module
             array(
                 'href' => $this->context->link->getAdminLink('AdminModules').'&configure='.$this->name,
                 'title' => $this->l('Cancel'),
-                'icon' => 'process-icon-cancel'
+                'icon' => 'process-icon-cancel',
             ),
         );
 
@@ -794,7 +815,7 @@ class Ps_EmailsManager extends Module
         $helper->name_controller = $this->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
         $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
-        $helper->default_form_language = (int)Configuration::get('PS_LANG_DEFAULT');
+        $helper->default_form_language = (int) Configuration::get('PS_LANG_DEFAULT');
         $helper->allow_employee_form_lang = (int) Configuration::get('PS_LANG_DEFAULT');
 
         // Title and toolbar
@@ -814,7 +835,7 @@ class Ps_EmailsManager extends Module
 
     public function getFieldsValue(array $settings)
     {
-        $fieldsValue  = array();
+        $fieldsValue = array();
         $userSettings = Tools::jsonDecode(Configuration::getGlobalValue('MAILMANAGER_CURRENT_CONF_'.$this->getCurrentThemeId()), true);
 
         // If the template currently installed is not the same that the one that
@@ -851,7 +872,7 @@ class Ps_EmailsManager extends Module
     }
 
     /**
-     * Fetches the available templates
+     * Fetches the available templates.
      */
     public function getAvailableTemplates()
     {
@@ -882,7 +903,7 @@ class Ps_EmailsManager extends Module
     }
 
     /**
-     * Generates a file upload panel
+     * Generates a file upload panel.
      */
     public function generateImportPanel()
     {
@@ -905,16 +926,16 @@ class Ps_EmailsManager extends Module
             ),
             'input' => array(
                 array(
-                    'type'     => 'file',
-                    'label'    => $this->l('Zip'),
-                    'desc'     => $this->l('Select your template\'s zip'),
+                    'type' => 'file',
+                    'label' => $this->l('Zip'),
+                    'desc' => $this->l('Select your template\'s zip'),
                     'required' => true,
-                    'name'     => 'uploadedfile',
+                    'name' => 'uploadedfile',
                 ),
             ),
             'submit' => array(
                 'title' => $this->l('Save'),
-                'class' => 'btn btn-default pull-right'
+                'class' => 'btn btn-default pull-right',
             ),
         );
 
@@ -951,7 +972,7 @@ class Ps_EmailsManager extends Module
 
     /**
      * Performs actions when the user posts something through the configuration
-     * forms
+     * forms.
      */
     public function postProcess()
     {
@@ -971,6 +992,7 @@ class Ps_EmailsManager extends Module
 
             if (!mkdir($targetPath, 0777, true)) {
                 $this->_errors[] = $this->l('Can\'t create folder: '.$targetPath);
+
                 return false;
             }
 
@@ -980,15 +1002,16 @@ class Ps_EmailsManager extends Module
                 return $this->unpackTemplates($targetPath, $_FILES['uploadedfile']['name']);
             }
         }
+
         return false;
     }
 
     /**
-     * Takes a templates archive and unzip it
+     * Takes a templates archive and unzip it.
      */
     public function unpackTemplates($zipPath, $filename)
     {
-        $zip      = new ZipArchive();
+        $zip = new ZipArchive();
         $destPath = $zipPath.Tools::substr($filename, 0, -4);
 
         $allowedTypes = array('text/html', 'text/plain', 'image/jpeg', 'image/png', 'image/gif', 'application/json');
@@ -1005,6 +1028,7 @@ class Ps_EmailsManager extends Module
                         $this->_errors[] = $this->l('Invalid file(s) in your zip');
                         Tools::deleteDirectory($destPath);
                         $zip->close();
+
                         return false;
                     }
                 }
@@ -1024,6 +1048,7 @@ class Ps_EmailsManager extends Module
                 $zip->extractTo($this->importsPath.$settings['name']);
                 $zip->close();
                 Tools::deleteDirectory($zipPath);
+
                 return true;
             }
             $zip->close();
@@ -1032,11 +1057,12 @@ class Ps_EmailsManager extends Module
         }
 
         Tools::deleteDirectory($zipPath);
+
         return false;
     }
 
     /**
-     * Handles the upload errors
+     * Handles the upload errors.
      */
     public function manageUploadError()
     {
@@ -1079,7 +1105,7 @@ class Ps_EmailsManager extends Module
             'iso_code' => Country::getIsoById(Configuration::get('PS_COUNTRY_DEFAULT')),
             'search_type' => 'full',
             'product_type' => 'module',
-            'id_category' => 625
+            'id_category' => 625,
         );
 
         $url = 'https://api.addons.prestashop.com/?';
@@ -1090,6 +1116,7 @@ class Ps_EmailsManager extends Module
                 return $content['results'];
             }
         }
+
         return false;
     }
 }
