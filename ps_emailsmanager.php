@@ -227,7 +227,7 @@ class Ps_EmailsManager extends Module
         // );
 
         $translations = Tools::file_get_contents(
-            'https://raw.githubusercontent.com/alejoasotelo/email-templates-sdk/master/langs/es/lang.json'
+            'https://raw.githubusercontent.com/alejoasotelo/email-templates-sdk/master/langs/es/lang-c1rca.json'
         );
 
         $translations = Tools::jsonDecode($translations, true);
